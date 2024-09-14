@@ -12,7 +12,8 @@ export function QueryEditor({ onChange, query }: Props) {
   const onSQLChange = (event: FormEvent<HTMLTextAreaElement>) => {
     onChange({
       ...query,
-      o_sql: event.currentTarget.value
+      o_sql: event.currentTarget.value,
+      o_parsed: interpolate(event.currentTarget.value ?? '')
     });
   }
 

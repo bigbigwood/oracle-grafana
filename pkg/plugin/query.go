@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"time"
+	"fmt"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -26,7 +27,8 @@ type OracleDatasourceInfo struct {
 
 type OracleDatasourceColumn struct {
 	name   string
-	values []string
+	dataType string
+	values []any
 }
 
 type OracleDatasourceResult struct {
@@ -54,15 +56,23 @@ func (q *OracleDatasourceQuery) MakeQuery(c *OracleDatasourceConnection, from ti
 		}
 		defer rows.Close()
 
-		columns, err := rows.Columns()
+		columnTypes, err := rows.ColumnTypes()
+		columns := []string{}
+		typeMap := make(map[string]string)
 		if err != nil {
 			log.DefaultLogger.Error("Error fetching columns: ", err)
 			result.err = err
 			return result
 		} else {
-			for _, name := range columns {
-				result.columns = append(result.columns, OracleDatasourceColumn{name, []string{}})
-			}
+		    for _, column := range columnTypes {
+		        name := column.Name()
+		        typename := GetDataTypeByType(column.ScanType())
+		        log.DefaultLogger.Debug(fmt.Sprintf("column: %v, dataType:%v", name, typename))
+
+		        typeMap[name] = typename
+		        columns = append(columns, name)
+		        result.columns = append(result.columns, OracleDatasourceColumn{name, typename, []any{}})
+		    }
 		}
 		log.DefaultLogger.Debug("Oracle query fetch: ", "columns", columns)
 
@@ -80,9 +90,11 @@ func (q *OracleDatasourceQuery) MakeQuery(c *OracleDatasourceConnection, from ti
 			}
 			for index, scannedValue := range sacnValues {
 				if scannedValue != nil {
-					result.columns[index].values = append(result.columns[index].values, string(scannedValue))
+				    dataType := typeMap[result.columns[index].name]
+				    convertedValue := ConvertValue(scannedValue, dataType)
+					result.columns[index].values = append(result.columns[index].values, convertedValue)
 				} else {
-					result.columns[index].values = append(result.columns[index].values, "(null)")
+					result.columns[index].values = append(result.columns[index].values, nil)
 				}
 			}
 		}
