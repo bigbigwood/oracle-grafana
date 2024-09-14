@@ -122,7 +122,8 @@ func (d *OracleDatasource) query(_ context.Context, pCtx backend.PluginContext, 
 
 	// add fields.
 	for _, column := range result.columns {
-		frame.Fields = append(frame.Fields, data.NewField(column.name, nil, column.values))
+		values := ConvertValueArray(column.dataType, column.values)
+		frame.Fields = append(frame.Fields, data.NewField(column.name, nil, values))
 	}
 
 	// add the frames to the response.

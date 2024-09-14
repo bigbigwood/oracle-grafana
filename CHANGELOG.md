@@ -1,5 +1,9 @@
 # Oracle Grafana Changelog
 
+## 1.0.1 
+* support alerting
+* support retrieve number/time/string
+
 ## 1.0.0 (Unreleased)
 
 Initial release as a Datasource with internal backend support.

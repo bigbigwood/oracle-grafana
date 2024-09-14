@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "backend": true,
+  "alerting": true,
   "dependencies": {
     "grafanaDependency": ">=9.5.3",
     "plugins": []
